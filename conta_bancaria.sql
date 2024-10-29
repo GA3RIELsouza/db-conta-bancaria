@@ -2,6 +2,13 @@
 CREATE DATABASE if NOT EXISTS conta_bancaria;
 USE conta_bancaria;
 
+# DROP TABLE
+DROP TABLE if EXISTS Telefone_Pessoa;
+DROP TABLE if EXISTS Pessoa_Juridica;
+DROP TABLE if EXISTS Pessoa_Fisica;
+DROP TABLE if EXISTS Pessoa;
+DROP TABLE if EXISTS Localidade;
+
 # CREATE TABLE
 CREATE TABLE if NOT EXISTS Localidade
 (
@@ -57,10 +64,3 @@ CREATE TABLE if NOT EXISTS Telefone_Pessoa
 	PRIMARY KEY (ID, ID_Pessoa),
 	FOREIGN KEY (ID_Pessoa) REFERENCES Pessoa(ID)
 );
-
-# DROP TABLE
-DROP TABLE if EXISTS Telefone_Pessoa;
-DROP TABLE if EXISTS Pessoa_Juridica;
-DROP TABLE if EXISTS Pessoa_Fisica;
-DROP TABLE if EXISTS Pessoa;
-DROP TABLE if EXISTS Localidade;
