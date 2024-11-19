@@ -1,66 +1,157 @@
 # CREATE DATABASE
+DROP DATABASE if EXISTS conta_bancaria;
 CREATE DATABASE if NOT EXISTS conta_bancaria;
 USE conta_bancaria;
 
+# CREATE USER
+DROP USER if EXISTS 'gerente_banco';
+CREATE USER if NOT EXISTS 'gerente_banco' IDENTIFIED BY 'banco123';
+GRANT ALL PRIVILEGES ON conta_bancaria.* TO 'gerente_banco';
+FLUSH PRIVILEGES;
+
 # DROP TABLE
-DROP TABLE if EXISTS Telefone_Pessoa;
-DROP TABLE if EXISTS Pessoa_Juridica;
-DROP TABLE if EXISTS Pessoa_Fisica;
-DROP TABLE if EXISTS Pessoa;
-DROP TABLE if EXISTS Localidade;
+DROP TABLE if EXISTS telefone_pessoa;
+DROP TABLE if EXISTS pessoa_juridica;
+DROP TABLE if EXISTS pessoa_fisica;
+DROP TABLE if EXISTS pessoa;
+DROP TABLE if EXISTS localidade;
 
 # CREATE TABLE
-CREATE TABLE if NOT EXISTS Localidade
-(
-	ID         BIGINT       AUTO_INCREMENT,
-	CEP        BIGINT       NOT NULL UNIQUE,
-	Estado     VARCHAR(2)   NOT NULL,
-	Cidade     VARCHAR(80)  NOT NULL,
-	Bairro     VARCHAR(50)  NOT NULL,
-	Logradouro VARCHAR(100) NOT NULL,
-	PRIMARY KEY (ID)
+CREATE TABLE if NOT EXISTS localidade (
+	id          BIGINT       AUTO_INCREMENT,
+	cep         BIGINT       NOT NULL UNIQUE,
+	estado      VARCHAR(2)   NOT NULL,
+	cidade      VARCHAR(80)  NOT NULL,
+	bairro      VARCHAR(50)  NOT NULL,
+	logradouro  VARCHAR(100) NOT NULL,
+	PRIMARY KEY (id)
 );
 
-CREATE TABLE if NOT EXISTS Pessoa
-(
-	ID             BIGINT AUTO_INCREMENT,
-	ID_Localidade  BIGINT NOT NULL,
-	Num_Endereco   INT    NOT NULL,
-	Compl_Endereco VARCHAR(32),
-	Situacao       INT    NOT NULL,
-	PRIMARY KEY (ID),
-	FOREIGN KEY (ID_Localidade) REFERENCES Localidade(ID)
+CREATE TABLE if NOT EXISTS pessoa (
+	id             BIGINT AUTO_INCREMENT,
+	id_localidade  BIGINT NOT NULL,
+	num_endereco   INT    NOT NULL,
+	compl_endereco VARCHAR(32),
+	situacao       INT    NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY (id_localidade) REFERENCES localidade(id)
 );
 
-CREATE TABLE if NOT EXISTS Pessoa_Fisica
-(
-	ID_Pessoa BIGINT,
-	CPF       BIGINT       NOT NULL UNIQUE,
-	Nome      VARCHAR(100) NOT NULL,
-	Dt_Nasc   DATE         NOT NULL,
-	Sexo      INT          NOT NULL,
-	PRIMARY KEY (ID_Pessoa),
-	FOREIGN KEY (ID_Pessoa) REFERENCES Pessoa(ID)
+CREATE TABLE if NOT EXISTS pessoa_fisica (
+	id_pessoa  BIGINT,
+	cpf        BIGINT       NOT NULL UNIQUE,
+	nome       VARCHAR(100) NOT NULL,
+	dt_nasc    DATE         NOT NULL,
+	sexo       INT          NOT NULL,
+	PRIMARY KEY (id_pessoa),
+	FOREIGN KEY (id_pessoa) REFERENCES pessoa(id)
 );
 
-CREATE TABLE if NOT EXISTS Pessoa_Juridica
-(
-	ID_Pessoa      BIGINT,
-	CNPJ           VARCHAR(14)  NOT NULL UNIQUE,
-	Razao_Social   VARCHAR(100) NOT NULL,
-	Nome_Fantasma  VARCHAR(50)  NOT NULL,
-	Insrc_Nacional VARCHAR(32)  NOT NULL,
-	PRIMARY KEY (ID_Pessoa),
-	FOREIGN KEY (ID_Pessoa) REFERENCES Pessoa(ID)
+CREATE TABLE if NOT EXISTS pessoa_juridica (
+	id_pessoa       BIGINT,
+	cnpj            VARCHAR(14)  NOT NULL UNIQUE,
+	razao_social    VARCHAR(100) NOT NULL,
+	nome_fantasia   VARCHAR(50)  NOT NULL,
+	insrc_nacional  VARCHAR(32)  NOT NULL,
+	PRIMARY KEY (id_pessoa),
+	FOREIGN KEY (id_pessoa) REFERENCES pessoa(id)
 );
 
-CREATE TABLE if NOT EXISTS Telefone_Pessoa
-(
-	ID        BIGINT AUTO_INCREMENT,
-	ID_Pessoa BIGINT,
-	Numero    BIGINT NOT NULL,
-	Tipo      INT    NOT NULL,
-	Situacao  INT    NOT NULL,
-	PRIMARY KEY (ID, ID_Pessoa),
-	FOREIGN KEY (ID_Pessoa) REFERENCES Pessoa(ID)
+CREATE TABLE if NOT EXISTS telefone_pessoa (
+	id        BIGINT AUTO_INCREMENT,
+	id_pessoa BIGINT,
+	numero    BIGINT NOT NULL,
+	tipo      INT    NOT NULL,
+	situacao  INT    NOT NULL,
+	PRIMARY KEY (id, id_pessoa),
+	FOREIGN KEY (id_pessoa) REFERENCES pessoa(id)
+);
+
+CREATE TABLE if NOT EXISTS banco (
+	id             BIGINT       AUTO_INCREMENT,
+	nome           VARCHAR(100) NOT NULL,
+	mascaraAgencia VARCHAR(50)  NOT NULL,
+	mascaraConta   VARCHAR(50)  NOT NULL,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE if NOT EXISTS conta_bancaria (
+	id            BIGINT        AUTO_INCREMENT,
+	id_banco      BIGINT        NOT NULL,
+	num_agencia   BIGINT        NOT NULL,
+	saldo         DECIMAL(11,2) NOT NULL,
+	data_abertura DATE          NOT NULL,
+	id_titular    BIGINT        NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY (id_banco)   REFERENCES banco  (id),
+	FOREIGN KEY (id_titular) REFERENCES pessoa (id)
+);
+
+CREATE TABLE if NOT EXISTS evento (
+	id                BIGINT       AUTO_INCREMENT,
+	descricao         VARCHAR(100) NOT NULL,
+	tipo_movimentacao INT          NOT NULL,
+	situacao          INT          NOT NULL,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE if NOT EXISTS movimentacao (
+	id_conta_bancaria BIGINT        AUTO_INCREMENT,
+	data_movimentacao DATE          NOT NULL,
+	id_evento         BIGINT        NOT NULL,
+	valor             DECIMAL(11,2) NOT NULL,
+	PRIMARY KEY (id_conta_bancaria),
+	FOREIGN KEY (id_conta_bancaria) REFERENCES conta_bancaria (id),
+	FOREIGN KEY (id_evento)         REFERENCES evento         (id)
+);
+
+CREATE TABLE if NOT EXISTS conta_corrente (
+	id_conta_bancaria    BIGINT        NOT NULL,
+	valor_cesta_servicos DECIMAL(11,2) NOT NULL,
+	limite_pix_noturno   DECIMAL(11,2) NOT NULL,
+	PRIMARY KEY (id_conta_bancaria),
+	FOREIGN KEY (id_conta_bancaria) REFERENCES conta_bancaria (id)
+);
+
+CREATE TABLE if NOT EXISTS conta_especial (
+	id_conta_corrente  BIGINT        NOT NULL,
+	limite_credito     DECIMAL(11,2) NOT NULL,
+	data_vcto_contrato DATE          NOT NULL,
+	PRIMARY KEY (id_conta_corrente),
+	FOREIGN KEY (id_conta_corrente) REFERENCES conta_corrente (id_conta_bancaria)
+);
+
+CREATE TABLE if NOT EXISTS conta_salario (
+	id_conta_corrente     BIGINT        NOT NULL,
+	cnpj_vinculado        VARCHAR(14)   NOT NULL,
+	limite_consignado     DECIMAL(11,2) NOT NULL,
+	limite_antecipado_mes DECIMAL(11,2) NOT NULL,
+	permite_antecipar_13o BIT(1)        NOT NULL,
+	PRIMARY KEY (id_conta_corrente),
+	FOREIGN KEY (id_conta_corrente) REFERENCES conta_corrente  (id_conta_bancaria),
+	FOREIGN KEY (cnpj_vinculado)    REFERENCES pessoa_juridica (cnpj)
+);
+
+CREATE TABLE if NOT EXISTS cotacao (
+	id           BIGINT AUTO_INCREMENT,
+	data_cotacao DATE   NOT NULL,
+	situacao     INT    NOT NULL,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE if NOT EXISTS indice_remuneracao (
+	id            BIGINT       AUTO_INCREMENT,
+	descricao     VARCHAR(100) NOT NULL,
+	periodicidade INT          NOT NULL,
+	situacao      INT          NOT NULL,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE if NOT EXISTS conta_poupanca (
+	id_conta_bancaria      BIGINT       NOT NULL,
+	id_indice_remuneracao  BIGINT       NOT NULL,
+	perc_rendimento_real   DECIMAL(4,2) NOT NULL,
+	PRIMARY KEY (id_conta_bancaria),
+	FOREIGN KEY (id_conta_bancaria)     REFERENCES conta_bancaria     (id),
+	FOREIGN KEY (id_indice_remuneracao) REFERENCES indice_remuneracao (id)
 );
