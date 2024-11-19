@@ -10,6 +10,16 @@ GRANT ALL PRIVILEGES ON conta_bancaria.* TO 'gerente_banco';
 FLUSH PRIVILEGES;
 
 # DROP TABLE
+DROP TABLE if EXISTS conta_poupanca;
+DROP TABLE if EXISTS indice_remuneracao;
+DROP TABLE if EXISTS cotacao;
+DROP TABLE if EXISTS conta_salario;
+DROP TABLE if EXISTS conta_especial;
+DROP TABLE if EXISTS conta_corrente;
+DROP TABLE if EXISTS movimentacao;
+DROP TABLE if EXISTS evento;
+DROP TABLE if EXISTS conta_bancaria;
+DROP TABLE if EXISTS banco;
 DROP TABLE if EXISTS telefone_pessoa;
 DROP TABLE if EXISTS pessoa_juridica;
 DROP TABLE if EXISTS pessoa_fisica;
