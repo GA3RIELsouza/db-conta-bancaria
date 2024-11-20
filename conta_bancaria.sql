@@ -68,11 +68,10 @@ CREATE TABLE if NOT EXISTS pessoa_juridica (
 );
 
 CREATE TABLE if NOT EXISTS telefone (
-	id        BIGINT AUTO_INCREMENT,
-	id_pessoa BIGINT,
-	numero    BIGINT NOT NULL,
-	tipo      INT    NOT NULL,
-	situacao  INT    NOT NULL,
+	id        BIGINT      AUTO_INCREMENT,
+	id_pessoa BIGINT      NOT NULL,
+	numero    VARCHAR(15) NOT NULL,
+	tipo      INT         NOT NULL,
 	PRIMARY KEY (id, id_pessoa),
 	FOREIGN KEY (id_pessoa) REFERENCES pessoa(id)
 );
