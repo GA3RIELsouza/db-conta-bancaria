@@ -20,7 +20,7 @@ DROP TABLE if EXISTS movimentacao;
 DROP TABLE if EXISTS evento;
 DROP TABLE if EXISTS conta_bancaria;
 DROP TABLE if EXISTS banco;
-DROP TABLE if EXISTS telefone_pessoa;
+DROP TABLE if EXISTS telefone;
 DROP TABLE if EXISTS pessoa_juridica;
 DROP TABLE if EXISTS pessoa_fisica;
 DROP TABLE if EXISTS pessoa;
@@ -30,7 +30,7 @@ DROP TABLE if EXISTS localidade;
 CREATE TABLE if NOT EXISTS localidade (
 	id          BIGINT       AUTO_INCREMENT,
 	cep         BIGINT       NOT NULL UNIQUE,
-	estado      VARCHAR(2)   NOT NULL,
+	estado      VARCHAR(80)  NOT NULL,
 	cidade      VARCHAR(80)  NOT NULL,
 	bairro      VARCHAR(50)  NOT NULL,
 	logradouro  VARCHAR(100) NOT NULL,
@@ -49,25 +49,25 @@ CREATE TABLE if NOT EXISTS pessoa (
 
 CREATE TABLE if NOT EXISTS pessoa_fisica (
 	id_pessoa  BIGINT,
-	cpf        BIGINT       NOT NULL UNIQUE,
+	cpf        VARCHAR(14)  NOT NULL UNIQUE,
 	nome       VARCHAR(100) NOT NULL,
 	dt_nasc    DATE         NOT NULL,
-	sexo       INT          NOT NULL,
+	sexo       BIT(1)       NOT NULL,
 	PRIMARY KEY (id_pessoa),
 	FOREIGN KEY (id_pessoa) REFERENCES pessoa(id)
 );
 
 CREATE TABLE if NOT EXISTS pessoa_juridica (
 	id_pessoa       BIGINT,
-	cnpj            VARCHAR(14)  NOT NULL UNIQUE,
+	cnpj            VARCHAR(18)  NOT NULL UNIQUE,
 	razao_social    VARCHAR(100) NOT NULL,
 	nome_fantasia   VARCHAR(50)  NOT NULL,
-	insrc_nacional  VARCHAR(32)  NOT NULL,
+	inscr_estadual  VARCHAR(32)  NOT NULL,
 	PRIMARY KEY (id_pessoa),
 	FOREIGN KEY (id_pessoa) REFERENCES pessoa(id)
 );
 
-CREATE TABLE if NOT EXISTS telefone_pessoa (
+CREATE TABLE if NOT EXISTS telefone (
 	id        BIGINT AUTO_INCREMENT,
 	id_pessoa BIGINT,
 	numero    BIGINT NOT NULL,
