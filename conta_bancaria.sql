@@ -62,7 +62,7 @@ CREATE TABLE if NOT EXISTS pessoa_juridica (
 	cnpj            VARCHAR(18)  NOT NULL UNIQUE,
 	razao_social    VARCHAR(100) NOT NULL,
 	nome_fantasia   VARCHAR(50)  NOT NULL,
-	inscr_estadual  VARCHAR(32)  NOT NULL,
+	inscr_estadual  VARCHAR(32)  NOT NULL UNIQUE,
 	PRIMARY KEY (id_pessoa),
 	FOREIGN KEY (id_pessoa) REFERENCES pessoa(id)
 );
@@ -70,30 +70,31 @@ CREATE TABLE if NOT EXISTS pessoa_juridica (
 CREATE TABLE if NOT EXISTS telefone (
 	id        BIGINT      AUTO_INCREMENT,
 	id_pessoa BIGINT      NOT NULL,
-	numero    VARCHAR(15) NOT NULL,
+	numero    VARCHAR(15) NOT NULL UNIQUE,
 	tipo      INT         NOT NULL,
-	PRIMARY KEY (id, id_pessoa),
+	PRIMARY KEY (id),
 	FOREIGN KEY (id_pessoa) REFERENCES pessoa(id)
 );
 
 CREATE TABLE if NOT EXISTS banco (
-	id             BIGINT       AUTO_INCREMENT,
+	codigo         INT          NOT NULL,
 	nome           VARCHAR(100) NOT NULL,
-	mascaraAgencia VARCHAR(50)  NOT NULL,
-	mascaraConta   VARCHAR(50)  NOT NULL,
-	PRIMARY KEY (id)
+	mascara_agencia VARCHAR(50)  NOT NULL,
+	mascara_conta   VARCHAR(50)  NOT NULL,
+	PRIMARY KEY (codigo)
 );
 
 CREATE TABLE if NOT EXISTS conta_bancaria (
 	id            BIGINT        AUTO_INCREMENT,
-	id_banco      BIGINT        NOT NULL,
+	codigo_banco  INT           NOT NULL,
 	num_agencia   BIGINT        NOT NULL,
-	saldo         DECIMAL(11,2) NOT NULL,
+	num_conta     BIGINT        NOT NULL,
+	saldo         DECIMAL(11,2) NOT NULL DEFAULT(0),
 	data_abertura DATE          NOT NULL,
 	id_titular    BIGINT        NOT NULL,
 	PRIMARY KEY (id),
-	FOREIGN KEY (id_banco)   REFERENCES banco  (id),
-	FOREIGN KEY (id_titular) REFERENCES pessoa (id)
+	FOREIGN KEY (codigo_banco) REFERENCES banco  (codigo),
+	FOREIGN KEY (id_titular)   REFERENCES pessoa (id)
 );
 
 CREATE TABLE if NOT EXISTS evento (
@@ -105,11 +106,12 @@ CREATE TABLE if NOT EXISTS evento (
 );
 
 CREATE TABLE if NOT EXISTS movimentacao (
-	id_conta_bancaria BIGINT        AUTO_INCREMENT,
+	id                BIGINT        AUTO_INCREMENT,
+	id_conta_bancaria BIGINT        NOT NULL,
 	data_movimentacao DATE          NOT NULL,
 	id_evento         BIGINT        NOT NULL,
 	valor             DECIMAL(11,2) NOT NULL,
-	PRIMARY KEY (id_conta_bancaria),
+	PRIMARY KEY (id),
 	FOREIGN KEY (id_conta_bancaria) REFERENCES conta_bancaria (id),
 	FOREIGN KEY (id_evento)         REFERENCES evento         (id)
 );
@@ -131,21 +133,16 @@ CREATE TABLE if NOT EXISTS conta_especial (
 );
 
 CREATE TABLE if NOT EXISTS conta_salario (
-	id_conta_corrente     BIGINT        NOT NULL,
-	cnpj_vinculado        VARCHAR(14)   NOT NULL,
-	limite_consignado     DECIMAL(11,2) NOT NULL,
-	limite_antecipado_mes DECIMAL(11,2) NOT NULL,
-	permite_antecipar_13o BIT(1)        NOT NULL,
-	PRIMARY KEY (id_conta_corrente),
-	FOREIGN KEY (id_conta_corrente) REFERENCES conta_corrente  (id_conta_bancaria),
-	FOREIGN KEY (cnpj_vinculado)    REFERENCES pessoa_juridica (cnpj)
-);
-
-CREATE TABLE if NOT EXISTS cotacao (
-	id           BIGINT AUTO_INCREMENT,
-	data_cotacao DATE   NOT NULL,
-	situacao     INT    NOT NULL,
-	PRIMARY KEY (id)
+	id_conta_bancaria      BIGINT        NOT NULL,
+	cnpj_vinculado         VARCHAR(14)   NOT NULL,
+	limite_consignado      DECIMAL(11,2) NOT NULL,
+	limite_antecipacao_mes DECIMAL(11,2) NOT NULL,
+	permite_antecipar_13o  BIT(1)        NOT NULL,
+	id_conta_vinculada     BIGINT        NOT NULL,
+	PRIMARY KEY (id_conta_bancaria),
+	FOREIGN KEY (id_conta_bancaria)  REFERENCES conta_bancaria  (id),
+	FOREIGN KEY (cnpj_vinculado)     REFERENCES pessoa_juridica (cnpj),
+	FOREIGN KEY (id_conta_vinculada) REFERENCES conta_corrente  (id_conta_bancaria)
 );
 
 CREATE TABLE if NOT EXISTS indice_remuneracao (
@@ -154,6 +151,15 @@ CREATE TABLE if NOT EXISTS indice_remuneracao (
 	periodicidade INT          NOT NULL,
 	situacao      INT          NOT NULL,
 	PRIMARY KEY (id)
+);
+
+CREATE TABLE if NOT EXISTS cotacao (
+	id                    BIGINT        AUTO_INCREMENT,
+	id_indice_remuneracao BIGINT        NOT NULL,
+	data_cotacao          DATE          NOT NULL,
+	valor                 DECIMAL(11,2) NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY (id_indice_remuneracao) REFERENCES indice_remuneracao (id)
 );
 
 CREATE TABLE if NOT EXISTS conta_poupanca (
